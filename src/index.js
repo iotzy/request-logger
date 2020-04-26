@@ -36,6 +36,7 @@ const args = process.argv.slice(2);
 
 let port = "";
 let server = "";
+
 args.forEach(item => {
     const arr = item.split("=");
     if (arr[0] === 'p' || arr[0] === "port") {
@@ -48,7 +49,7 @@ args.forEach(item => {
 
 
 const listenPort = port || 3000;
-const destServer = server || 'http://127.0.0.1:8000';
+const destServer = server;
 const app = new Koa();
 app.use(koaBody());
 app.use(async ctx => {
@@ -64,15 +65,21 @@ app.use(async ctx => {
     console.log(styles.red[0] + styles.green[0], "data:   ", JSON.stringify(ctx.request.body));
     console.log(styles.red[0] + styles.green[0], "bearer:  ", ctx.request.headers['bearer']);
     console.log(styles.red[0], "***********************  request  end  ***********************");
-    var res, data;
+    var res, data, text;
     if (['post', 'POST', 'put', 'PUT'].includes(ctx.method)) {
-        res = await fetch(`${destServer}${ctx.path}`, {
-            body: JSON.stringify(ctx.request.body),
-            headers: ctx.header,
-            method: ctx.method,
-            credentials: 'include'
-        });
-        data = await res.json();
+        try {
+            res = await fetch(`${destServer}${ctx.path}`.toString(), {
+                body: JSON.stringify(ctx.request.body),
+                headers: ctx.header,
+                method: ctx.method,
+                // credentials: 'include'
+            });
+            text = await res.text();
+            data = await res.json();
+        } catch (e) {
+            data = text
+        }
+
     }
     if (['get', 'GET', 'delete', 'DELETE'].includes(ctx.method)) {
         let paramsArray = [];
@@ -87,12 +94,18 @@ app.use(async ctx => {
                 ctx.path += '&' + paramsArray.join('&')
             }
         }
-        res = await fetch(`${destServer}${ctx.path}`, {
-            headers: ctx.header,
-            method: ctx.method,
-            credentials: 'include'
-        });
-        data = await res.json();
+        try {
+            res = await fetch(`${destServer}${ctx.path}`, {
+                headers: ctx.header,
+                method: ctx.method,
+                credentials: 'include'
+            });
+            data = await res.json();
+        } catch (e) {
+            text = await res.text();
+            data = text
+        }
+
     }
 
     console.log(styles.cyan[0], "***********************  response  start  ***********************");
