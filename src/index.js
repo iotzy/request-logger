@@ -74,10 +74,11 @@ app.use(async ctx => {
                 method: ctx.method,
                 // credentials: 'include'
             });
-            text = await res.text();
             data = await res.json();
         } catch (e) {
-            data = text
+            // text = await res.text();
+            // data = text
+            console.error(e)
         }
 
     }
@@ -95,15 +96,16 @@ app.use(async ctx => {
             }
         }
         try {
-            res = await fetch(`${destServer}${ctx.path}`, {
+            res = await fetch(`${destServer}${ctx.path}`.replace(/\%3F/, '?'), {
                 headers: ctx.header,
                 method: ctx.method,
-                credentials: 'include'
+                // credentials: 'include'
             });
             data = await res.json();
         } catch (e) {
-            text = await res.text();
-            data = text
+            // text = await res.text();
+            // data = text
+            console.error(e)
         }
 
     }
